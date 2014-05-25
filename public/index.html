@@ -88,7 +88,7 @@
 		]
 	};
 
-	var dr = new Firebase('https://michi.firebaseio.com/');
+	var gamesdr = new Firebase('https://michi.firebaseio.com/games');
 
 	/**
 	 * Check game for specified player
@@ -147,17 +147,27 @@
 		} 
 	}
 
+	var id = window.location.hash.replace('#', '');
+	id = id == '' ? 'default' : id;
+	document.title += ' ' + id;
+	var dr = gamesdr.child(id);
+	dr.transaction(function(currentGame) {
+		if (currentGame === null) {
+			return '';
+		}
+		return currentGame;
+	});
+
 	dr.on('value', function(snapshot) {
-		var drmichi = snapshot.val();
+		var game = snapshot.val();
 		var player = $('#board').data('player');
-		var game = drmichi.game;
 		var i = game.length % 2;
 		if (!player || michi.players[i] == player) {
 			$('#board').removeClass('played');
 		} else {
 			$('#board').addClass('played');
 		}
-		drawGame(drmichi.game);
+		drawGame(game);
 	});
 
 	$('#board a').on('click', function(e) {
@@ -178,7 +188,7 @@
 
 		$('#board').data('player', players[i]);
 		michi.game = game;
-		dr.set({"game": game});
+		dr.set(game);
 
 	}).on('dblclick', function(e) {
 
